@@ -1,0 +1,88 @@
+# Demo HA for oriel-dashboard README screenshot.
+# Built on `demo:` + `oriel_demo:` (registry-backed extra lights + plants)
+# + a handful of template sensors/binary_sensors. All generic/fake.
+
+default_config:
+demo:
+oriel_demo:
+# Harness addition (NOT in the :8126 reference): stages the dynamic state
+# (pollen spread, person home/away) + injects now-relative recorder history
+# that the reference demo had poked in by hand. See custom_components/harness_seed.
+harness_seed:
+
+# Surface harness_seed's "staged N / injected N" messages (HA's container stdout
+# defaults to WARNING, which would otherwise hide them). Harness-only; does not
+# affect fixture parity.
+logger:
+  default: warning
+  logs:
+    custom_components.harness_seed: info
+
+frontend:
+
+input_select:
+  house_mode:
+    name: House mode
+    icon: mdi:home-account
+    options: [At Home, Away, Night, Holiday]
+    initial: At Home
+
+template:
+  - sensor:
+      # Per-area temp + humidity
+      - { name: "Living room temperature", unique_id: liv_temp, state: "21.8", unit_of_measurement: "°C", device_class: temperature }
+      - { name: "Living room humidity", unique_id: liv_hum, state: "47", unit_of_measurement: "%", device_class: humidity }
+      - { name: "Kitchen temperature", unique_id: kit_temp, state: "23.1", unit_of_measurement: "°C", device_class: temperature }
+      - { name: "Kitchen humidity", unique_id: kit_hum, state: "52", unit_of_measurement: "%", device_class: humidity }
+      - { name: "Bedroom temperature", unique_id: bed_temp, state: "19.4", unit_of_measurement: "°C", device_class: temperature }
+      - { name: "Bedroom humidity", unique_id: bed_hum, state: "43", unit_of_measurement: "%", device_class: humidity }
+      - { name: "Bathroom temperature", unique_id: bath_temp, state: "22.7", unit_of_measurement: "°C", device_class: temperature }
+      - { name: "Bathroom humidity", unique_id: bath_hum, state: "68", unit_of_measurement: "%", device_class: humidity }
+      - { name: "Office temperature", unique_id: off_temp, state: "20.9", unit_of_measurement: "°C", device_class: temperature }
+      - { name: "Office humidity", unique_id: off_hum, state: "41", unit_of_measurement: "%", device_class: humidity }
+      # Batteries — spread across critical/low/ok tiers
+      - { name: "Front door sensor battery", unique_id: bat_frontdoor, state: "12", unit_of_measurement: "%", device_class: battery }
+      - { name: "Backyard motion battery", unique_id: bat_backyard, state: "18", unit_of_measurement: "%", device_class: battery }
+      - { name: "Bedroom window sensor battery", unique_id: bat_bedwin, state: "35", unit_of_measurement: "%", device_class: battery }
+      - { name: "Kitchen smoke detector battery", unique_id: bat_kitsmoke, state: "44", unit_of_measurement: "%", device_class: battery }
+      - { name: "Hallway thermostat battery", unique_id: bat_thermo, state: "82", unit_of_measurement: "%", device_class: battery }
+      - { name: "Garage door sensor battery", unique_id: bat_garage, state: "91", unit_of_measurement: "%", device_class: battery }
+
+  - binary_sensor:
+      - { name: "Front door", unique_id: bs_frontdoor, state: "off", device_class: door }
+      - { name: "Back door", unique_id: bs_backdoor, state: "off", device_class: door }
+      - { name: "Kitchen window", unique_id: bs_kitwin, state: "on", device_class: window }
+      - { name: "Living room window", unique_id: bs_livwin, state: "off", device_class: window }
+      - { name: "Bedroom window", unique_id: bs_bedwin, state: "on", device_class: window }
+      - { name: "Bathroom window", unique_id: bs_bathwin, state: "off", device_class: window }
+      - { name: "Garage door sensor", unique_id: bs_garage, state: "off", device_class: garage_door }
+      - { name: "Living room motion", unique_id: bs_livmot, state: "on", device_class: motion }
+      - { name: "Hallway motion", unique_id: bs_hallmot, state: "off", device_class: motion }
+      - { name: "Backyard motion", unique_id: bs_yardmot, state: "off", device_class: motion }
+
+# Demo scenes + scripts so oriel's routines section populates.
+scene:
+  - name: "Movie night"
+    icon: mdi:movie-open
+    entities:
+      light.bed_light: off
+  - name: "Good morning"
+    icon: mdi:weather-sunny
+    entities:
+      light.bed_light: on
+  - name: "All off"
+    icon: mdi:power-off
+    entities:
+      light.bed_light: off
+
+script:
+  start_cleaning:
+    alias: "Start cleaning"
+    icon: mdi:robot-vacuum
+    sequence:
+      - delay: "00:00:01"
+  bedtime_routine:
+    alias: "Bedtime routine"
+    icon: mdi:bed-clock
+    sequence:
+      - delay: "00:00:01"

@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "lovelace_dashboards",
+  "data": {
+    "items": [
+      {
+        "id": "map",
+        "icon": "mdi:map",
+        "title": "Map",
+        "url_path": "map",
+        "require_admin": false,
+        "mode": "storage",
+        "show_in_sidebar": true
+      },
+      {
+        "id": "oriel_demo",
+        "url_path": "oriel-demo",
+        "title": "Oriel",
+        "icon": "mdi:view-dashboard",
+        "mode": "storage",
+        "show_in_sidebar": true,
+        "require_admin": false
+      },
+      {
+        "id": "pw_shots",
+        "url_path": "pw-shots",
+        "title": "PW Shots",
+        "icon": "mdi:camera",
+        "mode": "storage",
+        "show_in_sidebar": false,
+        "require_admin": false
+      }
+    ]
+  }
+}

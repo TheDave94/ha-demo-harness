@@ -1,0 +1,20 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <path d="M33.6 6 Q33.2 11 32.6 16" fill="none" stroke="var(--pw-grain-stroke,#2A3540)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="rotate(-6 32 36)">
+    <path d="M32 15 Q27.2 15.4 26.2 20 L23.8 32 Q22.4 40 24.6 46 Q28 53.6 32 53.8 Q36 53.6 39.4 46 Q41.6 40 40.2 32 L37.8 20 Q36.8 15.4 32 15 Z" fill="var(--pw-grain-fill,#E8EBEE)" stroke="var(--pw-grain-stroke,#2A3540)" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M26.0 23 Q32 24.2 38.0 23" fill="none" stroke="var(--pw-grain-stroke,#2A3540)" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M24.7 31 Q32 32.4 39.3 31" fill="none" stroke="var(--pw-grain-stroke,#2A3540)" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M23.7 39 Q32 40.6 40.3 39" fill="none" stroke="var(--pw-grain-stroke,#2A3540)" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M24.6 47 Q32 48.4 39.4 47" fill="none" stroke="var(--pw-grain-stroke,#2A3540)" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M31.7 31 Q31.4 35 31.6 39" fill="none" stroke="var(--pw-grain-stroke,#2A3540)" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M32.3 39 Q32.6 43 32.4 47" fill="none" stroke="var(--pw-grain-stroke,#2A3540)" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M28.6 39 Q28.4 43 28.8 47" fill="none" stroke="var(--pw-grain-stroke,#2A3540)" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M35.4 39 Q35.6 43 35.2 47" fill="none" stroke="var(--pw-grain-stroke,#2A3540)" stroke-width="1.3" stroke-linecap="round"/>
+  </g>
+  <g transform="rotate(28 50 52)">
+    <path d="M50 45 Q47.4 45.2 46.8 48 Q46 52.4 47.4 55.4 Q48.6 57.8 50 57.9 Q51.4 57.8 52.6 55.4 Q54 52.4 53.2 48 Q52.6 45.2 50 45 Z" fill="var(--pw-grain-fill,#E8EBEE)" stroke="var(--pw-grain-stroke,#2A3540)" stroke-width="1.6" stroke-linejoin="round"/>
+    <path d="M47 49.5 Q50 50.2 53 49.5" fill="none" stroke="var(--pw-grain-stroke,#2A3540)" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M46.6 53.6 Q50 54.3 53.4 53.6" fill="none" stroke="var(--pw-grain-stroke,#2A3540)" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M50 53.6 Q49.9 55 50 56.6" fill="none" stroke="var(--pw-grain-stroke,#2A3540)" stroke-width="1.3" stroke-linecap="round"/>
+  </g>
+</svg>

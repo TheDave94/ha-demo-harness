@@ -1,0 +1,19 @@
+# One-command bring-up of the populated demo HA.
+#
+#   docker compose up --build        # build + boot, ready on http://localhost:8127
+#   docker compose down              # stop + remove (config is ephemeral — fresh each up)
+#
+# Port 8127 is deliberately DIFFERENT from the hand-staged reference demo on
+# :8126, so the harness runs ALONGSIDE the reference without colliding.
+#
+# No volume is mounted: /config lives in the image layer, so every recreate
+# boots a pristine, deterministic demo. harness_seed re-stages dynamic state and
+# injects now-relative recorder history on each boot.
+services:
+  demo-ha:
+    build: .
+    image: ha-demo-harness:dev
+    container_name: ha-demo-harness
+    ports:
+      - "8127:8123"
+    stop_grace_period: 30s

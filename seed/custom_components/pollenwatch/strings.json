@@ -1,0 +1,474 @@
+{
+  "title": "PollenWatch",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add a PollenWatch location",
+        "description": "Pollen data comes from the Copernicus Atmosphere Monitoring Service (CAMS) via Open-Meteo (always-on) and up to five optional regional sources you can enable in Options after setup. The location is fixed once set — to move it later, remove and re-add the integration.",
+        "data": {
+          "location": "Location"
+        },
+        "data_description": {
+          "location": "Pick the point to monitor. Open-Meteo snaps it to the nearest ~10 km grid cell."
+        }
+      },
+      "species": {
+        "title": "Species to track",
+        "description": "Species commonly tracked in your country ({country}) are pre-selected ({default_count} of {available_count} locally-available). Toggle the cross-validated core for a one-click default of the {core_count} most-validated species — alder, birch, grass, hazel, mugwort, ragweed, olive, ash. Only species at least one source can cover at your location appear; enable additional sources in Options after setup to unlock more.",
+        "data": {
+          "selected_species": "Species to track",
+          "use_cross_validated_core": "Use cross-validated core (overrides selection above)"
+        },
+        "data_description": {
+          "selected_species": "Each selected species creates sensors per active source. Unselected species don't create any entities, keeping the install lean.",
+          "use_cross_validated_core": "The 8 species with both high allergenic potency AND coverage from at least 3 sources globally — a sane default for users who don't want to think about it."
+        }
+      }
+    },
+    "error": {
+      "out_of_coverage": "This location is outside CAMS European coverage. Choose a location within Europe.",
+      "cannot_connect": "Could not reach Open-Meteo. Check your connection and try again.",
+      "no_species": "Select at least one species (or toggle the cross-validated core)."
+    },
+    "abort": {
+      "already_configured": "This location is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "PollenWatch options",
+        "description": "The location is fixed; remove and re-add the integration to change it.",
+        "data": {
+          "selected_species": "Species to track",
+          "default_layout": "Default card layout",
+          "update_interval": "Update interval (minutes)",
+          "enable_polleninformation": "Enable polleninformation.at (second source)",
+          "country": "Country (polleninformation)",
+          "api_key": "polleninformation API key",
+          "sensitivity_alder": "Alder sensitivity (×)",
+          "sensitivity_birch": "Birch sensitivity (×)",
+          "sensitivity_grass": "Grass sensitivity (×)",
+          "sensitivity_mugwort": "Mugwort sensitivity (×)",
+          "sensitivity_olive": "Olive sensitivity (×)",
+          "sensitivity_ragweed": "Ragweed sensitivity (×)",
+          "enable_dwd": "Enable DWD Pollenflug (Germany, third source)",
+          "region": "DWD region",
+          "enable_meteoswiss": "Enable MeteoSwiss (Switzerland)",
+          "enable_epin": "Enable ePIN (Bavaria)",
+          "enable_google": "Enable Google Pollen API (global)",
+          "google_api_key": "Google Pollen API key"
+        },
+        "data_description": {
+          "default_layout": "Default layout for PollenWatch's bundled Lovelace card. 'gauge' is the per-species severity gauge (one card per species). 'bars', 'compact', and 'tiles' are multi-species overview layouts (PollenWatch v2.4+). Individual cards can override this default by setting `layout:` in their card YAML.",
+          "update_interval": "How often to poll Open-Meteo. Minimum 60 minutes to be a good citizen on a free public API.",
+          "enable_polleninformation": "Adds a second source. Requires a free API key from polleninformation.at.",
+          "country": "The country whose pollen network covers your location.",
+          "api_key": "Stored encrypted in Home Assistant; never written to disk in plain text.",
+          "enable_dwd": "Adds the Deutscher Wetterdienst forecast. Germany only; no API key needed.",
+          "region": "Your DWD forecast region within Germany.",
+          "enable_meteoswiss": "Adds the MeteoSwiss automatic network. Switzerland only; no API key. The nearest measuring station is picked automatically — currently: {ms_station}.",
+          "enable_epin": "Adds the ePIN automatic network. Bavaria only; no API key. The nearest measuring station is picked automatically — currently: {epin_station}.",
+          "enable_google": "Adds the Google Pollen API: global coverage, 5-day forecast, all six allergens (incl. olive — the only source with it). Requires a Google Cloud project with the Pollen API enabled AND a billing account attached. A free tier exists (~5,000 requests/month) but Google requires a payment method on file, so this is more involved than the other sources' free keys.",
+          "google_api_key": "Stored encrypted in Home Assistant; never written to disk in plain text. Consensus-only: Google's licence forbids storing its forecasts, so it is not used for the recent-percentile baseline."
+        }
+      }
+    },
+    "error": {
+      "no_species": "Select at least one species.",
+      "country_required": "Select a country to enable polleninformation.",
+      "api_key_required": "Enter the API key for the source you enabled.",
+      "invalid_api_key": "The source rejected the API key. Check it and try again.",
+      "out_of_coverage": "The selected source has no pollen data for this location.",
+      "cannot_connect": "Could not reach the selected pollen source. Check your connection and try again.",
+      "region_required": "Select a DWD region to enable DWD.",
+      "invalid_layout": "Pick one of: Gauge, Bars, Compact, Tiles."
+    }
+  },
+  "selector": {
+    "default_layout": {
+      "options": {
+        "gauge": "Gauge (one card per species — pre-v2.4 view)",
+        "bars": "Bars (multi-species overview, severity-filled bars)",
+        "compact": "Compact (multi-species overview, dense dot-grid)",
+        "tiles": "Tiles (multi-species overview, severity-tinted icons)"
+      }
+    },
+    "allergen": {
+      "options": {
+        "alder": "Alder",
+        "birch": "Birch",
+        "grass": "Grass",
+        "mugwort": "Mugwort",
+        "olive": "Olive",
+        "ragweed": "Ragweed"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "alder": {
+        "name": "Alder"
+      },
+      "consensus_alder": {
+        "name": "Alder consensus"
+      },
+      "personal_score_alder": {
+        "name": "Alder personal score"
+      },
+      "recent_percentile_alder": {
+        "name": "Alder recent percentile"
+      },
+      "alternaria": {
+        "name": "Alternaria (spore)"
+      },
+      "consensus_alternaria": {
+        "name": "Alternaria (spore) consensus"
+      },
+      "personal_score_alternaria": {
+        "name": "Alternaria (spore) personal score"
+      },
+      "recent_percentile_alternaria": {
+        "name": "Alternaria (spore) recent percentile"
+      },
+      "ash": {
+        "name": "Ash"
+      },
+      "consensus_ash": {
+        "name": "Ash consensus"
+      },
+      "personal_score_ash": {
+        "name": "Ash personal score"
+      },
+      "recent_percentile_ash": {
+        "name": "Ash recent percentile"
+      },
+      "asteraceae": {
+        "name": "Asteraceae (other)"
+      },
+      "consensus_asteraceae": {
+        "name": "Asteraceae (other) consensus"
+      },
+      "personal_score_asteraceae": {
+        "name": "Asteraceae (other) personal score"
+      },
+      "recent_percentile_asteraceae": {
+        "name": "Asteraceae (other) recent percentile"
+      },
+      "beech": {
+        "name": "Beech"
+      },
+      "consensus_beech": {
+        "name": "Beech consensus"
+      },
+      "personal_score_beech": {
+        "name": "Beech personal score"
+      },
+      "recent_percentile_beech": {
+        "name": "Beech recent percentile"
+      },
+      "birch": {
+        "name": "Birch"
+      },
+      "consensus_birch": {
+        "name": "Birch consensus"
+      },
+      "personal_score_birch": {
+        "name": "Birch personal score"
+      },
+      "recent_percentile_birch": {
+        "name": "Birch recent percentile"
+      },
+      "carpinus": {
+        "name": "Hornbeam"
+      },
+      "consensus_carpinus": {
+        "name": "Hornbeam consensus"
+      },
+      "personal_score_carpinus": {
+        "name": "Hornbeam personal score"
+      },
+      "recent_percentile_carpinus": {
+        "name": "Hornbeam recent percentile"
+      },
+      "chenopodium": {
+        "name": "Goosefoot"
+      },
+      "consensus_chenopodium": {
+        "name": "Goosefoot consensus"
+      },
+      "personal_score_chenopodium": {
+        "name": "Goosefoot personal score"
+      },
+      "recent_percentile_chenopodium": {
+        "name": "Goosefoot recent percentile"
+      },
+      "cypress_family": {
+        "name": "Cypress / juniper"
+      },
+      "consensus_cypress_family": {
+        "name": "Cypress / juniper consensus"
+      },
+      "personal_score_cypress_family": {
+        "name": "Cypress / juniper personal score"
+      },
+      "recent_percentile_cypress_family": {
+        "name": "Cypress / juniper recent percentile"
+      },
+      "elm": {
+        "name": "Elm"
+      },
+      "consensus_elm": {
+        "name": "Elm consensus"
+      },
+      "personal_score_elm": {
+        "name": "Elm personal score"
+      },
+      "recent_percentile_elm": {
+        "name": "Elm recent percentile"
+      },
+      "grass": {
+        "name": "Grass"
+      },
+      "consensus_grass": {
+        "name": "Grass consensus"
+      },
+      "personal_score_grass": {
+        "name": "Grass personal score"
+      },
+      "recent_percentile_grass": {
+        "name": "Grass recent percentile"
+      },
+      "hazel": {
+        "name": "Hazel"
+      },
+      "consensus_hazel": {
+        "name": "Hazel consensus"
+      },
+      "personal_score_hazel": {
+        "name": "Hazel personal score"
+      },
+      "recent_percentile_hazel": {
+        "name": "Hazel recent percentile"
+      },
+      "holm_oak": {
+        "name": "Holm oak"
+      },
+      "consensus_holm_oak": {
+        "name": "Holm oak consensus"
+      },
+      "personal_score_holm_oak": {
+        "name": "Holm oak personal score"
+      },
+      "recent_percentile_holm_oak": {
+        "name": "Holm oak recent percentile"
+      },
+      "juglans": {
+        "name": "Walnut"
+      },
+      "consensus_juglans": {
+        "name": "Walnut consensus"
+      },
+      "personal_score_juglans": {
+        "name": "Walnut personal score"
+      },
+      "recent_percentile_juglans": {
+        "name": "Walnut recent percentile"
+      },
+      "mugwort": {
+        "name": "Mugwort"
+      },
+      "consensus_mugwort": {
+        "name": "Mugwort consensus"
+      },
+      "personal_score_mugwort": {
+        "name": "Mugwort personal score"
+      },
+      "recent_percentile_mugwort": {
+        "name": "Mugwort recent percentile"
+      },
+      "nettle_family": {
+        "name": "Nettle / pellitory"
+      },
+      "consensus_nettle_family": {
+        "name": "Nettle / pellitory consensus"
+      },
+      "personal_score_nettle_family": {
+        "name": "Nettle / pellitory personal score"
+      },
+      "recent_percentile_nettle_family": {
+        "name": "Nettle / pellitory recent percentile"
+      },
+      "oak": {
+        "name": "Oak"
+      },
+      "consensus_oak": {
+        "name": "Oak consensus"
+      },
+      "personal_score_oak": {
+        "name": "Oak personal score"
+      },
+      "recent_percentile_oak": {
+        "name": "Oak recent percentile"
+      },
+      "olive": {
+        "name": "Olive"
+      },
+      "consensus_olive": {
+        "name": "Olive consensus"
+      },
+      "personal_score_olive": {
+        "name": "Olive personal score"
+      },
+      "recent_percentile_olive": {
+        "name": "Olive recent percentile"
+      },
+      "plane_tree": {
+        "name": "Plane tree"
+      },
+      "consensus_plane_tree": {
+        "name": "Plane tree consensus"
+      },
+      "personal_score_plane_tree": {
+        "name": "Plane tree personal score"
+      },
+      "recent_percentile_plane_tree": {
+        "name": "Plane tree recent percentile"
+      },
+      "plantago": {
+        "name": "Plantain"
+      },
+      "consensus_plantago": {
+        "name": "Plantain consensus"
+      },
+      "personal_score_plantago": {
+        "name": "Plantain personal score"
+      },
+      "recent_percentile_plantago": {
+        "name": "Plantain recent percentile"
+      },
+      "ragweed": {
+        "name": "Ragweed"
+      },
+      "consensus_ragweed": {
+        "name": "Ragweed consensus"
+      },
+      "personal_score_ragweed": {
+        "name": "Ragweed personal score"
+      },
+      "recent_percentile_ragweed": {
+        "name": "Ragweed recent percentile"
+      },
+      "rumex": {
+        "name": "Sorrel / dock"
+      },
+      "consensus_rumex": {
+        "name": "Sorrel / dock consensus"
+      },
+      "personal_score_rumex": {
+        "name": "Sorrel / dock personal score"
+      },
+      "recent_percentile_rumex": {
+        "name": "Sorrel / dock recent percentile"
+      },
+      "rye": {
+        "name": "Cereal rye"
+      },
+      "consensus_rye": {
+        "name": "Cereal rye consensus"
+      },
+      "personal_score_rye": {
+        "name": "Cereal rye personal score"
+      },
+      "recent_percentile_rye": {
+        "name": "Cereal rye recent percentile"
+      },
+      "urtica": {
+        "name": "Common nettle"
+      },
+      "consensus_urtica": {
+        "name": "Common nettle consensus"
+      },
+      "personal_score_urtica": {
+        "name": "Common nettle personal score"
+      },
+      "recent_percentile_urtica": {
+        "name": "Common nettle recent percentile"
+      }
+    },
+    "binary_sensor": {
+      "divergence_alder": {
+        "name": "Alder divergence"
+      },
+      "divergence_alternaria": {
+        "name": "Alternaria (spore) divergence"
+      },
+      "divergence_ash": {
+        "name": "Ash divergence"
+      },
+      "divergence_asteraceae": {
+        "name": "Asteraceae (other) divergence"
+      },
+      "divergence_beech": {
+        "name": "Beech divergence"
+      },
+      "divergence_birch": {
+        "name": "Birch divergence"
+      },
+      "divergence_carpinus": {
+        "name": "Hornbeam divergence"
+      },
+      "divergence_chenopodium": {
+        "name": "Goosefoot divergence"
+      },
+      "divergence_cypress_family": {
+        "name": "Cypress / juniper divergence"
+      },
+      "divergence_elm": {
+        "name": "Elm divergence"
+      },
+      "divergence_grass": {
+        "name": "Grass divergence"
+      },
+      "divergence_hazel": {
+        "name": "Hazel divergence"
+      },
+      "divergence_holm_oak": {
+        "name": "Holm oak divergence"
+      },
+      "divergence_juglans": {
+        "name": "Walnut divergence"
+      },
+      "divergence_mugwort": {
+        "name": "Mugwort divergence"
+      },
+      "divergence_nettle_family": {
+        "name": "Nettle / pellitory divergence"
+      },
+      "divergence_oak": {
+        "name": "Oak divergence"
+      },
+      "divergence_olive": {
+        "name": "Olive divergence"
+      },
+      "divergence_plane_tree": {
+        "name": "Plane tree divergence"
+      },
+      "divergence_plantago": {
+        "name": "Plantain divergence"
+      },
+      "divergence_ragweed": {
+        "name": "Ragweed divergence"
+      },
+      "divergence_rumex": {
+        "name": "Sorrel / dock divergence"
+      },
+      "divergence_rye": {
+        "name": "Cereal rye divergence"
+      },
+      "divergence_urtica": {
+        "name": "Common nettle divergence"
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "domain": "oriel_demo",
+  "name": "Oriel Demo Extensions",
+  "documentation": "https://github.com/TheDave94/oriel-dashboard",
+  "codeowners": [],
+  "iot_class": "calculated",
+  "version": "0.2.0",
+  "config_flow": true,
+  "dependencies": [],
+  "requirements": []
+}

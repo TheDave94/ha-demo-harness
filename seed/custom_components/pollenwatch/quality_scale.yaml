@@ -1,0 +1,151 @@
+# Quality scale rules for PollenWatch.
+#
+# Manifest claim: silver. This file documents each silver rule's status
+# (and the bronze rules silver depends on). Gold + Platinum are not claimed;
+# their rules are marked todo with one-line gap notes so the next-rung
+# work is enumerable rather than implicit.
+#
+# See https://developers.home-assistant.io/docs/core/integration-quality-scale/
+
+rules:
+  # ------------------------- Bronze -------------------------
+  action-setup:
+    status: exempt
+    comment: |
+      No custom services registered. The integration exposes sensors and
+      binary_sensors driven by DataUpdateCoordinator polls; users automate
+      against state changes, not against integration-owned actions.
+  appropriate-polling: done
+  brands: done
+  common-modules: done
+  config-flow: done
+  config-flow-test-coverage: done
+  dependency-transparency: done
+  docs-actions:
+    status: exempt
+    comment: No custom services to document.
+  docs-high-level-description: done
+  docs-installation-instructions: done
+  docs-removal-instructions: done
+  entity-event-setup: done
+  entity-unique-id: done
+  has-entity-name: done
+  runtime-data: done
+  test-before-configure: done
+  test-before-setup: done
+  unique-config-entry: done
+
+  # ------------------------- Silver -------------------------
+  action-exceptions:
+    status: exempt
+    comment: No custom services registered (see action-setup).
+  config-entry-unloading: done
+  docs-configuration-parameters: done
+  docs-installation-parameters: done
+  entity-unavailable: done
+  integration-owner: done
+  log-when-unavailable:
+    status: done
+    comment: |
+      Inherited via DataUpdateCoordinator: sources raise UpdateFailed inside
+      _async_update_data, the base class handles the once-on-disconnect /
+      once-on-reconnect logging pattern.
+  parallel-updates:
+    status: done
+    comment: |
+      sensor.py + binary_sensor.py declare PARALLEL_UPDATES = 0 at module
+      level (coordinator-driven; no per-entity writes).
+  reauthentication-flow:
+    status: todo
+    comment: |
+      Known gap, tracked for v2.2. The two keyed sources (polleninformation
+      and Google) raise SourceAuthError on HTTP 401/403, but the integration
+      does not implement async_step_reauth and does not surface
+      ConfigEntryAuthFailed — so a revoked/rotated key fails silently every
+      poll instead of prompting the user to re-authenticate. Keyless sources
+      (Open-Meteo, DWD, MeteoSwiss, ePIN) are legitimately exempt.
+  test-coverage: done
+
+  # ------------------------- Gold (not claimed) -------------------------
+  devices: done
+  diagnostics:
+    status: todo
+    comment: |
+      diagnostics.py is a stub. For a multi-source keyed integration this
+      is the textbook diagnostics case; needs async_get_config_entry_diagnostics
+      returning entry data + per-source last-fetch status, with API_KEY
+      redaction for polleninformation and Google.
+  discovery:
+    status: exempt
+    comment: |
+      Cloud-polling integration with user-configured location and per-source
+      API keys; nothing on-network to discover.
+  discovery-update-info:
+    status: exempt
+    comment: See `discovery`.
+  docs-data-update: done
+  docs-examples: done
+  docs-known-limitations: done
+  docs-supported-devices:
+    status: exempt
+    comment: |
+      No physical devices supported; the "devices" in HA's registry are
+      logical per-source groupings of cloud-polled entities.
+  docs-supported-functions: done
+  docs-troubleshooting: todo
+  docs-use-cases: done
+  dynamic-devices:
+    status: exempt
+    comment: |
+      Per-source devices are created at config-entry setup from the user's
+      selected sources; there is no upstream notion of dynamic device
+      discovery for cloud pollen feeds.
+  entity-category:
+    status: todo
+    comment: |
+      Derived sensors (recent_percentile, personal_score, divergence) should
+      carry EntityCategory.DIAGNOSTIC so they collapse to the device's
+      diagnostics panel instead of the main entity list. Raw + consensus
+      stay as primary.
+  entity-device-class: done
+  entity-disabled-by-default:
+    status: exempt
+    comment: |
+      Every sensor created represents a user-selected (species, source) pair;
+      the selection bounds the entity blowup. Nothing to disable by default.
+  entity-translations:
+    status: todo
+    comment: |
+      strings.json `entity:` block + de.json cover the original 6 species and
+      the derived-sensor names (consensus / divergence / recent_percentile /
+      personal_score) via translation_key as of v2.1. Coverage of the 18
+      v2.0-added species is complete; this rule passes once translators
+      contribute additional locales beyond de.
+  exception-translations: todo
+  icon-translations:
+    status: exempt
+    comment: |
+      Bundled Lovelace card carries the visual identity (24 duotone SVGs
+      under frontend/icons/). Entities use device-class default icons; an
+      icon-translation step is not currently load-bearing for the UX.
+  reconfiguration-flow: todo
+  repair-issues:
+    status: exempt
+    comment: |
+      User-visible degradations (out-of-coverage location, key auth failure,
+      source unavailable) are surfaced via the source's HA-native state
+      (unavailable / coordinator error) and the bundled card's six honest
+      states. A repair-issues flow would duplicate that signalling without
+      adding actionability.
+  stale-devices: done
+
+  # ------------------------- Platinum (not claimed) -------------------------
+  async-dependency:
+    status: done
+    comment: All sources use aiohttp via async_get_clientsession.
+  inject-websession:
+    status: done
+    comment: |
+      Every source's async_fetch accepts an aiohttp.ClientSession parameter;
+      production code passes HA's shared session via async_get_clientsession.
+  strict-typing: todo

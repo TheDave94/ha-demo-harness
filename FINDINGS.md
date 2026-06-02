@@ -1,0 +1,262 @@
+# Session 1 — Findings
+
+Build of the reproducible, one-command bring-up that reproduces the hand-staged
+reference demo (`:8126`, container `throwaway-oriel-demo`) from version control.
+Goal: parity, local reproduction only. Reference left running and untouched.
+
+## Outcome: PARITY ACHIEVED
+
+Fresh harness container booted on `:8127` and diffed against live `:8126`:
+
+| Check | Reference :8126 | Harness :8127 | Result |
+|---|---|---|---|
+| Total registry entities | 178 | 178 | ✅ |
+| Platform `demo` | 69 | 69 | ✅ |
+| Platform `template` | 40 | 40 | ✅ |
+| Platform `pollenwatch` | 24 | 24 | ✅ |
+| Platform `oriel_demo` | 12 | 12 | ✅ |
+| (sun 9, input_boolean 8, backup 5, input_select 4, person 2, script 2, met 1, google_translate 1, shopping_list 1) | match | match | ✅ |
+| Area names (7) | Bathroom, Bedroom, Garage, Hallway, Kitchen, Living Room, Office | identical | ✅ |
+| Strategy dashboard `/oriel-demo` | `custom:oriel` | `custom:oriel` | ✅ |
+| All 7 strategy toggles (show_pollen, plants, persons, routines, bubble_drawers, house_mode_entity, favorite_entities) | — | identical | ✅ |
+| Pollen consensus spread | grass:high, alder:low, birch:low, ragweed:mixed, mugwort:none, olive:unknown | identical | ✅ |
+| Person states | Alex home, Sam not_home | identical | ✅ |
+| Plant states (state, moisture) | monstera ok/62, fiddle_leaf problem/31, snake ok/45, pothos ok/54 | identical | ✅ |
+| Sparkline history (`sensor.living_room_temperature`) | 58 pts (24h window) | 42 pts (24h window) | ✅ both plottable |
+| Frontend resources served (oriel.js, bubble-card.js, apexcharts-card.js) | — | all HTTP 200 | ✅ |
+
+> `oriel_demo` = 12 (8 lights + 4 plants), not the "16-ish" estimated in the
+> Session-1 prompt. Both sides agree at 12; the estimate was approximate.
+
+> Sparkline point counts differ only because the reference has ~24h of live +
+> synthetic points accumulated, while the harness injects a clean 48h curve at
+> 30-min cadence (the default `/history/period` returns the last 24h ≈ 42–48
+> points). Both are non-empty and plot correctly. The harness history is
+> **now-relative** (see below), so it never ages out.
+
+## Recorder-history path taken: PROGRAMMATIC (now-relative), not a static .db
+
+I took the **programmatic** path from the design's risk register, **not** the
+committed-`.db` escape hatch. Reasoning:
+
+- A committed static `.db` carries **fixed past timestamps**. A "last 24h"
+  ApexCharts sparkline would show **empty** whenever the container is booted more
+  than 24h after the `.db` was generated — which defeats a reusable harness meant
+  to boot fresh at any time. Now-relative generation (history spanning
+  `now-48h … now`, computed at each boot) is the only durable option.
+
+`harness_seed` injects 48h of deterministic half-hourly history (~97 points ×
+10 temp/humidity sensors) on `EVENT_HOMEASSISTANT_STARTED`.
+
+### The one real hazard hit + fixed: recorder `states_meta` race
+
+First implementation inserted `states_meta` rows directly. This **corrupted the
+recorder's cached `StatesMetaManager`** (concurrent `UNIQUE constraint failed:
+states_meta.entity_id`), which broke a recorder transaction and left the DB with
+only ~11 `states_meta` rows (normal recording disrupted).
+
+**Fix:** never write `states_meta`. The per-area template sensors are recorded
+by the recorder at boot, so `harness_seed` now polls (≤25s) until the recorder
+**owns** each target's metadata, then references that `metadata_id` read-only and
+inserts only `state_attributes` + `states` rows (neither has a conflicting unique
+constraint). After the fix: **0 errors, 210 `states_meta` rows (healthy normal
+recording), 95 backdated sparkline rows.**
+
+This is the maintainable target. If a future HA bump makes the in-process
+injection fight the recorder again, the documented fallback (commit a generated
+`.db` + rebase its timestamps to now at pre-start) remains available — but it was
+not needed.
+
+## 2026.5 fixture lock — template-entity migration scope (REPORT ONLY, not fixed)
+
+Per the Session-1 addendum: HA **2026.6 removes legacy `template:` entities**.
+The lifted `seed/configuration.yaml` defines legacy template entities in its
+`template:` block. **These are NOT migrated this session** (parity-on-2026.5.4 is
+the goal); the pinned digest keeps them working. Documented loudly in `README.md`
+and the `Dockerfile`. Migration scope, to be done before any HA bump past 2026.5:
+
+**Legacy `template:` entities that need migration** (registry `platform=template`,
+40 total):
+
+- **`template:` → `sensor:` block (16 defined in configuration.yaml):**
+  - 5 area temperatures (`sensor.<area>_temperature`) + 5 area humidities
+    (`sensor.<area>_humidity`)
+  - 6 batteries (`sensor.front_door_sensor_battery`, `..._backyard_motion_*`,
+    `..._bedroom_window_*`, `..._kitchen_smoke_*`, `..._hallway_thermostat_*`,
+    `..._garage_door_*`)
+- **`template:` → `binary_sensor:` block (10 defined):** front/back door, 4
+  windows, garage door, 3 motion sensors.
+
+**Migration options (pick during the bump):** convert the `template:` YAML to the
+modern template-entity format, OR fold these synthetic sensors into the
+`oriel_demo` shim as real `SensorEntity`/`BinarySensorEntity` Python (the shim
+already owns lights + plants this way, so this is the cleaner long-term home and
+removes the YAML-template dependency entirely).
+
+## Things that did NOT reproduce cleanly (faithfully carried, noted)
+
+1. **Orphan plant template sensors.** The seeded `core.entity_registry` contains
+   8 plant template sensors (`sensor.<plant>_moisture` / `_temperature`, e.g.
+   `sensor.monstera_moisture`) with **no backing definition** in the current
+   `configuration.yaml` — leftovers from an earlier demo iteration. They are
+   `unavailable` on **both** `:8126` and `:8127` (verified), so parity holds, but
+   they are dead registry entries. (Note: oriel's plant *section* uses the
+   `plant.*` domain entities from the `oriel_demo` shim, which are fine — these
+   orphan `sensor.*` ones are unrelated cruft.) Cleanup candidate for a later
+   pass; harmless for now.
+
+2. **Network-dependent integrations log first-boot errors.** `met` (weather),
+   `radio_browser`, `go2rtc`, and `pollenwatch`'s source fetches emit fetch
+   errors/warnings on boot. Expected and benign — the demo's *staged* values
+   (which `harness_seed` overwrites) are what tests assert against. Flagged for
+   Session 2/3: for fully network-independent determinism, the pollenwatch
+   coordinator's live fetch should eventually be neutralized so it can't briefly
+   show real (non-deterministic) source values before `harness_seed` re-stages.
+   Currently mitigated by staging on `homeassistant_started` (after the
+   coordinator's first refresh) + a 5s re-assert; the coordinator's update
+   interval is ≥1h, so staged values hold for any realistic test run.
+
+3. **`docker compose` not installed on the build box.** Neither the compose
+   plugin nor `docker-compose` is present here, so verification used plain
+   `docker build` + `docker run`. The committed `docker-compose.yml` is correct
+   and is the documented bring-up; it just couldn't be exercised on this box.
+
+## Token model — verified
+
+The deterministic JWT algorithm in `scripts/make_seed_auth.py` was validated
+against the **live** `:8126` (reproduced its existing token byte-for-byte and got
+HTTP 200) before baking our own. The baked public token authenticates against the
+fresh harness (HTTP 200, all WS/REST queries succeed). No GitHub secret is needed
+to use it — that is the resolution of the public-repo-admin-token concern.
+
+## Not done (correctly deferred to Sessions 2–3)
+
+- No GHCR publish, no CI wiring, no Playwright/WS assertions.
+- `lib/` (shared HA client, to be ported from `pollenwatch/cleanroom/lib`) and
+  `scripts/inject-frontend.sh` are stubs — Session 2.
+- `.github/workflows/` are placeholders — Session 2.
+- Template-entity migration — deferred to the HA bump (scoped above).
+- Orphan-sensor cleanup — optional later pass.
+
+---
+
+# Demo-exercise findings — oriel bugs surfaced by populating the demo (provenance)
+
+_Dated 2026-06-02. Frozen history — this is the record of what the populated demo
+caught, not a backlog._
+
+**This is the harness's proof of value.** Standing up a fully-populated demo HA
+and exercising oriel's *entire* render surface (overview sections, the
+specialized views, the sparkline, bubble drawers, the pollen card, i18n
+fallbacks) surfaced **six findings (F1–F6)** that unit tests and a sparse fixture
+had not. Four are real oriel bugs (one user-facing-invisible), one is an
+enhancement, one turned out to be a test-method artifact. Catching this class of
+defect *automatically* is exactly what Sessions 2–3 wire into CI.
+
+**Reproduction context:** oriel built and deployed into the demo's
+`www/community/oriel-dashboard/`, strategy `custom:oriel` on the `/oriel-demo`
+dashboard with `show_pollen`, `show_plants_section`, `show_persons_section`,
+`show_routines_section`, `use_bubble_drawers: true`, a `custom:oriel-sparkline-card`
+(`use_apexcharts: true`), and `favorite_entities` set. Surfaced by rendering +
+DOM-walking the live dashboard, not by reading code.
+
+> **Actionable backlog lives in oriel, not here.** The real fixes (F1–F4, plus
+> F6 as an enhancement) are tracked as a live queue in
+> `oriel-dashboard/KNOWN_ISSUES.md` — that's where the work happens. This section
+> is the immutable provenance record of *what the demo caught and when*.
+
+| # | Severity | Area / location | What the demo surfaced |
+|---|---|---|---|
+| **F1** | minor (i18n) | `src/translations/en.json` | `sections.routines` key is **missing** — the Routines section header renders the literal key string instead of "Routines". |
+| **F2** | medium | `src/utils/localize.ts` (e.g. callsite `OverviewViewStrategy.ts:391`) | `localize()` returns the **key-string on a miss** (truthy), so `localize(...) || 'fallback'` never fires — defensive fallbacks are silently bypassed for *any* missing key. Likely affects every such callsite. F1 only became *visible* because F2 swallows the fallback. |
+| **F3** | medium | `src/types/strategy.ts` (CustomCard schema) | The custom-card field is `parsed_config`, not the natural `card`/`config`. YAML-direct users hand-writing the strategy use `card:` and the card **silently doesn't render** — editor-internal terminology leaking into the user-facing contract. |
+| **F4** | medium, **USER-FACING (flagship)** | `src/cards/SparklineCard.ts:282–287` | The ApexCharts render path returns a bare `<apexcharts-card>` with **no `<ha-card>` wrapper**, so `getBoundingClientRect()` is **0×0** — the chart mounts but is **invisible** for any real user enabling `use_apexcharts`. The non-apex path (~line 320) *does* wrap in `ha-card`. This is the flagship find: the demo + an eyeball caught what no unit test could. |
+| **F5** | **NOT a bug** (test-method lesson) | — | An early DOM walk reported "0 bubble-card elements emitted"; re-testing with a clean context found **all 35**. The walker had bailed at a shadow-DOM boundary — a test-method artifact, not an oriel defect. **Lesson: verify the walker before concluding non-emission.** Recorded so the false alarm isn't rediscovered as a "bug." |
+| **F6** | informational / enhancement | bubble-drawer emission (`use_bubble_drawers: true`) | oriel emits pop-ups for **all** actionable entities (35 in the demo) with no knob to scope (e.g. favorites-only) — heavy DOM. Worth a scoping option or at least a doc note. Not a defect. |
+
+**Harness coverage:** F4 → planned assertion #1 ("sparkline renders inside
+`ha-card` with nonzero bounding box"); F2 → assertion #2 ("no raw localization
+keys in rendered DOM"). F5's lesson is baked into how the bubble-emission
+assertion's DOM walker must be written.
+
+---
+
+# Session 1.5 — hygiene pass (2026-06-02)
+
+Three pre-publish cleanups so the S2 image consumers pin to is clean. All verified
+on the **compose-managed** container on `:8127`.
+
+## ⚠️ NEW PARITY BASELINE: 164 entities (was 178)
+
+After item 1, the harness registry is **164 entities** (`platform=template` = 26).
+This is the **new expected baseline** — future parity checks should expect 164, not
+178. The 14-entity drop is the orphan-sensor cleanup below, **not** a regression.
+All other platforms are unchanged vs `:8126` (demo 69, pollenwatch 24, oriel_demo
+12, sun 9, input_boolean 8, backup 5, input_select 4, person 2, script 2, met 1,
+google_translate 1, shopping_list 1).
+
+> The `:8126` reference is **no longer a valid baseline for two surfaces**:
+> (a) entity count — it still carries the 14 orphans (178); (b) pollen consensus —
+> its live coordinator has drifted the hand-staged spread (see item 2). For those
+> two, the **harness is now the source of truth**; `:8126` remains the baseline for
+> everything else (areas, strategy, persons, plants, structure).
+
+## Item 1 — orphan template sensors removed (14, not 8)
+
+S1 reported "8 orphan plant template sensors"; the real count is **14** — two
+leftover generations:
+- `demo_plant_*` set (6): `sensor.{monstera,fiddle_leaf,snake_plant}_{moisture,temperature}`
+- `pm_*`/`pt_*` set (8): all four plants `{…}_{moisture,temperature}`, with `_2`
+  object-id suffixes where they collided with the first set.
+
+All 14 verified fully orphaned before removal: `platform=template`, **no**
+`configuration.yaml` backing, `device_id=None`, `config_entry_id=None`, **all
+`unavailable`** on both `:8126`/`:8127`, **zero references** anywhere outside the
+registry. Removed from `seed/.storage/core.entity_registry`. `40 template − 14 =
+26`, matching exactly the configuration.yaml-backed template entities (16 sensors +
+10 binary_sensors). No live entity affected (all were dead).
+
+## Item 2 — pollen states made deterministic (coordinators neutralized)
+
+**Problem:** the staged pollen spread was being *out-raced*, not owned. The
+per-source coordinators (≤24h interval) and the **hardcoded-1h analytics/consensus
+coordinator** would re-derive on their next tick and clobber the staged consensus —
+the very states the pollen-card assertion (#5) will read. Proof it's real: by the
+time of this pass, `:8126`'s live coordinator had **already drifted** the spread
+(grass `high→low`, alder/birch/ragweed/olive `→none`).
+
+**Fix:** `harness_seed` now calls the documented public `await
+coordinator.async_shutdown()` on every pollenwatch coordinator (reached via
+`entry.runtime_data.coordinators` + `.analytics`) **before** staging — a hard stop
+(cancels the refresh timer + debouncer, ignores future runs), not an out-race. The
+old 5s re-assert heuristic was removed. Rejected alternatives: config (source caps
+at 24h, analytics interval hardcoded — can't); forking the vendored source
+(invasive); seeding `ConsensusResult`/`AnalyticsData` natively (deepest coupling).
+
+**Verified:** harness_seed logs `neutralized 2 pollen coordinators:
+pollenwatch_open_meteo(shutdown=True,timer=cancelled);
+pollenwatch_analytics(shutdown=True,timer=cancelled)` — the `timer=cancelled` flag
+is direct proof the periodic refresh can't fire. The staged spread (grass:high,
+alder/birch:low, ragweed:mixed, mugwort:none, olive:unknown) held exactly across a
+re-read window. (The 1h analytics interval can't be fast-forwarded in-session, but a
+cancelled timer cannot fire by construction — the mechanism, not the clock, is the
+guarantee.)
+
+**Honest residuals:** (a) staged states are written to the state machine via
+`async_set`; a forced `homeassistant.update_entity` on a consensus sensor would
+re-render it from the (now-frozen, boot-computed) coordinator data and could revert
+— but CI assertions only *read* states, never force-update. (b) Raw `open_meteo_*`
+source sensors keep their boot-fetch values (network-dependent), frozen
+post-shutdown; assertion #5 reads *consensus* (staged → deterministic), not raw
+source. (c) pollenwatch's `open_meteo` first-refresh is **blocking + networked at
+load** — a fully-offline CI wouldn't load pollenwatch at all (its 24 entities would
+be absent). Realistic CI (ubuntu-latest) has network so the boot fetch succeeds;
+offline support would need a source stub (deferred, larger change).
+
+## Item 3 — docker-compose.yml exercised (no longer un-validated)
+
+The compose plugin was installed on the box (`~/.docker/cli-plugins`, v5.1.4) and
+the file was **actually run**: `docker compose config` validates (rc 0, port
+`8127:8123` correct), and `docker compose up -d` boots the populated demo on `:8127`
+— harness_seed runs (neutralize + stage + 970 history rows), 164 entities, pollen
+at the staged spread. The S1 "un-exercised" flag is cleared.

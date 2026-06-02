@@ -1,0 +1,39 @@
+name: self-test
+
+# Regression guard: build the demo image, boot it, and assert the fixture
+# invariants against the KNOWN S1.5 baseline (164 entities). A seed/fixture change
+# that breaks an invariant fails HERE — not downstream in a consumer's CI.
+#
+# Uses the baked PUBLIC token (disposable fake container) — no secret required.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  self-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t ha-demo-harness:ci .
+
+      - name: Boot demo on :8127
+        run: docker run -d --name ha-demo-harness -p 8127:8123 ha-demo-harness:ci
+
+      - name: Wait for HA ready
+        run: ./scripts/wait-for-ha.sh http://localhost:8127
+
+      - name: Assert fixture invariants (baseline 164)
+        env:
+          HA_URL: http://localhost:8127
+          # No HA_TOKEN here on purpose: assert_fixture.py falls back to the baked
+          # public token in seed/.storage/.PUBLIC_TOKEN (present in the checkout).
+        run: |
+          python3 -m pip install --quiet aiohttp
+          python3 scripts/assert_fixture.py
+
+      - name: Demo logs on failure
+        if: failure()
+        run: docker logs ha-demo-harness 2>&1 | tail -120

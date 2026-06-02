@@ -1,0 +1,20 @@
+# Python caches (the seeded custom_components are source, caches are not)
+**/__pycache__/
+**/*.pyc
+*.pyo
+
+# Recorder / runtime artifacts that HA writes into a live /config — never commit.
+# (These only appear if someone points a live HA at the seed/ dir directly.)
+seed/home-assistant*.db*
+seed/home-assistant.log*
+seed/.HA_VERSION
+seed/.cloud/
+seed/deps/
+seed/tts/
+seed/.storage/core.restore_state
+seed/.storage/*.passive_update_processor
+seed/.storage/trace.saved_traces
+seed/.storage/repairs.issue_registry
+
+# Local parity-diff scratch
+/tmp_parity/

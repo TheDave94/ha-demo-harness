@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "lovelace.pw_shots",
+  "data": {
+    "config": {
+      "views": [
+        {
+          "title": "gauge",
+          "path": "gauge",
+          "type": "sections",
+          "max_columns": 1,
+          "sections": [
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "custom:pollenwatch-card",
+                  "layout": "gauge",
+                  "species": "grass"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "bars",
+          "path": "bars",
+          "type": "sections",
+          "max_columns": 1,
+          "sections": [
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "custom:pollenwatch-card",
+                  "layout": "bars"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "compact",
+          "path": "compact",
+          "type": "sections",
+          "max_columns": 1,
+          "sections": [
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "custom:pollenwatch-card",
+                  "layout": "compact"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "tiles",
+          "path": "tiles",
+          "type": "sections",
+          "max_columns": 1,
+          "sections": [
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "custom:pollenwatch-card",
+                  "layout": "tiles"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

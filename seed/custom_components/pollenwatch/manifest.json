@@ -1,0 +1,21 @@
+{
+  "domain": "pollenwatch",
+  "name": "PollenWatch",
+  "after_dependencies": [
+    "frontend",
+    "http",
+    "recorder"
+  ],
+  "codeowners": [
+    "@TheDave94"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/TheDave94/pollenwatch",
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/TheDave94/pollenwatch/issues",
+  "quality_scale": "silver",
+  "requirements": [],
+  "version": "2.4.0"
+}

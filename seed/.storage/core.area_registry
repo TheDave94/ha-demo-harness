@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "minor_version": 9,
+  "key": "core.area_registry",
+  "data": {
+    "areas": [
+      {
+        "aliases": [],
+        "floor_id": null,
+        "humidity_entity_id": "sensor.living_room_humidity",
+        "icon": "mdi:sofa",
+        "id": "living_room",
+        "labels": [],
+        "name": "Living Room",
+        "picture": null,
+        "temperature_entity_id": "sensor.living_room_temperature",
+        "created_at": "2026-06-02T11:58:45.270524+00:00",
+        "modified_at": "2026-06-02T12:26:21.938651+00:00"
+      },
+      {
+        "aliases": [],
+        "floor_id": null,
+        "humidity_entity_id": "sensor.kitchen_humidity",
+        "icon": "mdi:stove",
+        "id": "kitchen",
+        "labels": [],
+        "name": "Kitchen",
+        "picture": null,
+        "temperature_entity_id": "sensor.kitchen_temperature",
+        "created_at": "2026-06-02T11:58:45.270665+00:00",
+        "modified_at": "2026-06-02T12:26:21.939917+00:00"
+      },
+      {
+        "aliases": [],
+        "floor_id": null,
+        "humidity_entity_id": "sensor.bedroom_humidity",
+        "icon": "mdi:bed",
+        "id": "bedroom",
+        "labels": [],
+        "name": "Bedroom",
+        "picture": null,
+        "temperature_entity_id": "sensor.bedroom_temperature",
+        "created_at": "2026-06-02T11:58:45.270780+00:00",
+        "modified_at": "2026-06-02T12:26:21.940842+00:00"
+      },
+      {
+        "aliases": [],
+        "floor_id": null,
+        "humidity_entity_id": "sensor.bathroom_humidity",
+        "icon": "mdi:shower",
+        "id": "bathroom",
+        "labels": [],
+        "name": "Bathroom",
+        "picture": null,
+        "temperature_entity_id": "sensor.bathroom_temperature",
+        "created_at": "2026-06-02T11:59:01.753597+00:00",
+        "modified_at": "2026-06-02T12:26:21.941803+00:00"
+      },
+      {
+        "aliases": [],
+        "floor_id": null,
+        "humidity_entity_id": "sensor.office_humidity",
+        "icon": "mdi:desk",
+        "id": "office",
+        "labels": [],
+        "name": "Office",
+        "picture": null,
+        "temperature_entity_id": "sensor.office_temperature",
+        "created_at": "2026-06-02T11:59:01.755509+00:00",
+        "modified_at": "2026-06-02T12:26:21.942856+00:00"
+      },
+      {
+        "aliases": [],
+        "floor_id": null,
+        "humidity_entity_id": null,
+        "icon": "mdi:wall",
+        "id": "hallway",
+        "labels": [],
+        "name": "Hallway",
+        "picture": null,
+        "temperature_entity_id": null,
+        "created_at": "2026-06-02T12:23:05.173951+00:00",
+        "modified_at": "2026-06-02T12:23:05.173954+00:00"
+      },
+      {
+        "aliases": [],
+        "floor_id": null,
+        "humidity_entity_id": null,
+        "icon": "mdi:garage",
+        "id": "garage",
+        "labels": [],
+        "name": "Garage",
+        "picture": null,
+        "temperature_entity_id": null,
+        "created_at": "2026-06-02T12:23:05.175800+00:00",
+        "modified_at": "2026-06-02T12:23:05.175803+00:00"
+      }
+    ]
+  }
+}

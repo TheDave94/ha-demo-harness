@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "lovelace.oriel_demo",
+  "data": {
+    "config": {
+      "strategy": {
+        "type": "custom:oriel",
+        "show_pollen": true,
+        "show_energy": false,
+        "show_search_card": false,
+        "show_clock_card": true,
+        "show_plants_section": true,
+        "show_persons_section": true,
+        "show_routines_section": true,
+        "house_mode_entity": "input_select.house_mode",
+        "use_bubble_drawers": true,
+        "favorite_entities": [
+          "light.bed_light",
+          "climate.heatpump",
+          "cover.living_room_window"
+        ],
+        "custom_cards_heading": "Trends",
+        "custom_cards": [
+          {
+            "target_section": "custom_cards",
+            "parsed_config": {
+              "type": "custom:oriel-sparkline-card",
+              "entity": "sensor.living_room_temperature",
+              "name": "Living room — 24h",
+              "use_apexcharts": true,
+              "show_extrema": true,
+              "color": "#ff9800"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

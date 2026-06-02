@@ -1,0 +1,92 @@
+{
+    "version": 1,
+    "minor_version": 1,
+    "key": "auth",
+    "data": {
+        "users": [
+            {
+                "id": "64f08e6c96b945da9adb5c6a636dd3db",
+                "group_ids": [
+                    "system-read-only"
+                ],
+                "is_owner": false,
+                "is_active": true,
+                "name": "Home Assistant Content",
+                "system_generated": true,
+                "local_only": false
+            },
+            {
+                "id": "9a8e57f292e54cbcbdfd4021c64319c7",
+                "group_ids": [
+                    "system-admin"
+                ],
+                "is_owner": true,
+                "is_active": true,
+                "name": "Demo User",
+                "system_generated": false,
+                "local_only": false
+            }
+        ],
+        "groups": [
+            {
+                "id": "system-admin",
+                "name": "Administrators"
+            },
+            {
+                "id": "system-users",
+                "name": "Users"
+            },
+            {
+                "id": "system-read-only",
+                "name": "Read Only"
+            }
+        ],
+        "credentials": [
+            {
+                "id": "81dabdec47a94e228ec7ecfcf7215b02",
+                "user_id": "9a8e57f292e54cbcbdfd4021c64319c7",
+                "auth_provider_type": "homeassistant",
+                "auth_provider_id": null,
+                "data": {
+                    "username": "demo"
+                }
+            }
+        ],
+        "refresh_tokens": [
+            {
+                "id": "4c7accdd4d4f493daec127c26bf00869",
+                "user_id": "64f08e6c96b945da9adb5c6a636dd3db",
+                "client_id": null,
+                "client_name": null,
+                "client_icon": null,
+                "token_type": "system",
+                "created_at": "2024-06-01T00:00:00.000000+00:00",
+                "access_token_expiration": 1800.0,
+                "token": "0684d0e5ef1226d31452b7991c66a615e6c686b7982d28dc222cabfb59ffb4756abd75f78dcb52d105363b3d3d286d2a02a9166f76dca1527f194adad012295d",
+                "jwt_key": "a8f371086b5bbb075daba75afa14c450da649b6d20dfed9d45a4b1e097d86288785333e3fb5529e3598be5bb8b58f8aeed08474785de0ff278a21faff76be858",
+                "last_used_at": null,
+                "last_used_ip": null,
+                "expire_at": null,
+                "credential_id": null,
+                "version": "2026.5.4"
+            },
+            {
+                "id": "519390e1d080737950a01d5c95a10add",
+                "user_id": "9a8e57f292e54cbcbdfd4021c64319c7",
+                "client_id": null,
+                "client_name": "ha-demo-harness (public token)",
+                "client_icon": null,
+                "token_type": "long_lived_access_token",
+                "created_at": "2024-06-01T00:00:00.000000+00:00",
+                "access_token_expiration": 2353708800.0,
+                "token": "6fb9e2f48977cc6b8d605cda15e4539fe1011363f4a769d5a1bac69e1a12542f50d887fdce4835a8aa922ba17c346ee038fc110145e854b32c1a9330e42801f5",
+                "jwt_key": "00f04d8a2d1dff07d4b339d40accb3aa03ecd622b18bef50b8a03a467b1076ac5f029f15c0ea65bebbb7c3f243aacbe8b0e96130f68d7e24a979ec9c08fc62c9",
+                "last_used_at": null,
+                "last_used_ip": null,
+                "expire_at": null,
+                "credential_id": null,
+                "version": "2026.5.4"
+            }
+        ]
+    }
+}

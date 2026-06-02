@@ -1,0 +1,13 @@
+# Keep the build context minimal and /config clean.
+**/__pycache__/
+**/*.pyc
+# The public token is documented in the README; no need to ship the note file
+# into the container's /config.
+seed/.storage/.PUBLIC_TOKEN
+# Repo meta — never part of the image.
+.git/
+.github/
+DESIGN.md
+FINDINGS.md
+README.md
+scripts/

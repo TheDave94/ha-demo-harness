@@ -1,0 +1,463 @@
+{
+  "title": "PollenWatch",
+  "config": {
+    "step": {
+      "user": {
+        "title": "PollenWatch-Standort hinzufügen",
+        "description": "Die Pollendaten stammen vom Copernicus Atmosphere Monitoring Service (CAMS) über Open-Meteo (immer aktiv) und bis zu fünf optionalen regionalen Quellen, die in den Optionen nach der Einrichtung aktiviert werden können. Der Standort ist nach dem Einrichten fest — zum Ändern die Integration entfernen und neu hinzufügen.",
+        "data": {
+          "location": "Standort"
+        },
+        "data_description": {
+          "location": "Wähle den zu überwachenden Punkt. Open-Meteo rundet ihn auf die nächste Rasterzelle (~10 km)."
+        }
+      },
+      "species": {
+        "title": "Zu trackende Pollenarten",
+        "description": "Für dein Land ({country}) typischerweise relevante Arten sind vorausgewählt ({default_count} von {available_count} verfügbaren). Aktiviere den 'kreuzvalidierten Kern' für die {core_count} am besten validierten Arten (Erle, Birke, Gräser, Hasel, Beifuß, Ambrosia, Olive, Esche) — eine sinnvolle Standardauswahl. Es erscheinen nur Arten, die mindestens eine an deinem Standort aktivierbare Quelle erfassen kann; aktiviere weitere Quellen in den Optionen, um mehr freizuschalten.",
+        "data": {
+          "selected_species": "Pollenarten",
+          "use_cross_validated_core": "Kreuzvalidierten Kern verwenden (überschreibt die Auswahl oben)"
+        },
+        "data_description": {
+          "selected_species": "Pro ausgewählte Art werden Sensoren je aktiver Quelle erstellt. Nicht ausgewählte Arten erzeugen keine Entitäten — hält die Installation schlank.",
+          "use_cross_validated_core": "Die 8 Arten mit hoher allergener Potenz UND Abdeckung durch mindestens 3 Quellen weltweit — sinnvoller Standard für alle, die nicht im Detail entscheiden wollen."
+        }
+      }
+    },
+    "error": {
+      "out_of_coverage": "Dieser Standort liegt außerhalb der europäischen CAMS-Abdeckung. Wähle einen Standort innerhalb Europas.",
+      "cannot_connect": "Open-Meteo konnte nicht erreicht werden. Prüfe deine Verbindung und versuche es erneut.",
+      "no_species": "Wähle mindestens eine Pollenart aus (oder aktiviere den kreuzvalidierten Kern)."
+    },
+    "abort": {
+      "already_configured": "Dieser Standort ist bereits konfiguriert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "PollenWatch-Optionen",
+        "description": "Der Standort ist fest; zum Ändern die Integration entfernen und neu hinzufügen.",
+        "data": {
+          "selected_species": "Pollenarten",
+          "update_interval": "Aktualisierungsintervall (Minuten)",
+          "enable_polleninformation": "polleninformation.at aktivieren (zweite Quelle)",
+          "country": "Land (polleninformation)",
+          "api_key": "polleninformation API-Schlüssel",
+          "sensitivity_alder": "Erle-Empfindlichkeit (×)",
+          "sensitivity_birch": "Birke-Empfindlichkeit (×)",
+          "sensitivity_grass": "Gräser-Empfindlichkeit (×)",
+          "sensitivity_mugwort": "Beifuß-Empfindlichkeit (×)",
+          "sensitivity_olive": "Olive-Empfindlichkeit (×)",
+          "sensitivity_ragweed": "Ambrosia-Empfindlichkeit (×)",
+          "enable_dwd": "DWD Pollenflug aktivieren (Deutschland, dritte Quelle)",
+          "region": "DWD-Region",
+          "enable_meteoswiss": "MeteoSwiss aktivieren (Schweiz)",
+          "enable_epin": "ePIN aktivieren (Bayern)",
+          "enable_google": "Google Pollen API aktivieren (global)",
+          "google_api_key": "Google Pollen API-Schlüssel"
+        },
+        "data_description": {
+          "update_interval": "Wie oft Open-Meteo abgefragt wird. Mindestens 60 Minuten, um die kostenlose öffentliche API zu schonen.",
+          "enable_polleninformation": "Fügt eine zweite Quelle hinzu. Benötigt einen kostenlosen API-Schlüssel von polleninformation.at.",
+          "country": "Das Land, dessen Pollennetz deinen Standort abdeckt.",
+          "api_key": "Wird in Home Assistant verschlüsselt gespeichert; nie im Klartext auf die Festplatte geschrieben.",
+          "enable_dwd": "Fügt die Vorhersage des Deutschen Wetterdienstes hinzu. Nur Deutschland; kein API-Schlüssel nötig.",
+          "region": "Deine DWD-Vorhersageregion innerhalb Deutschlands.",
+          "enable_meteoswiss": "Fügt das automatische Messnetz von MeteoSwiss hinzu. Nur Schweiz; kein API-Schlüssel. Die nächste Messstation wird automatisch gewählt — aktuell: {ms_station}.",
+          "enable_epin": "Fügt das automatische ePIN-Messnetz hinzu. Nur Bayern; kein API-Schlüssel. Die nächste Messstation wird automatisch gewählt — aktuell: {epin_station}.",
+          "enable_google": "Fügt die Google Pollen API hinzu: globale Abdeckung, 5-Tage-Vorhersage, alle sechs Allergene (inkl. Olive — die einzige Quelle damit). Erfordert ein Google-Cloud-Projekt mit aktivierter Pollen-API UND ein hinterlegtes Abrechnungskonto. Es gibt ein kostenloses Kontingent (~5.000 Anfragen/Monat), aber Google verlangt eine hinterlegte Zahlungsmethode — also aufwändiger als die kostenlosen Schlüssel der anderen Quellen.",
+          "google_api_key": "Wird in Home Assistant verschlüsselt gespeichert; nie im Klartext auf die Festplatte geschrieben. Nur für den Konsens: Googles Lizenz verbietet das Speichern der Vorhersagen, daher wird sie nicht für die Perzentil-Basislinie verwendet."
+        }
+      }
+    },
+    "error": {
+      "no_species": "Wähle mindestens eine Pollenart aus.",
+      "country_required": "Wähle ein Land, um polleninformation zu aktivieren.",
+      "api_key_required": "Gib den API-Schlüssel für die aktivierte Quelle ein.",
+      "invalid_api_key": "Die Quelle hat den API-Schlüssel abgelehnt. Bitte prüfen und erneut versuchen.",
+      "out_of_coverage": "Die gewählte Quelle hat keine Pollendaten für diesen Standort.",
+      "cannot_connect": "Die gewählte Pollenquelle konnte nicht erreicht werden. Prüfe deine Verbindung und versuche es erneut.",
+      "region_required": "Wähle eine DWD-Region, um DWD zu aktivieren."
+    }
+  },
+  "selector": {
+    "allergen": {
+      "options": {
+        "alder": "Erle",
+        "birch": "Birke",
+        "grass": "Gräser",
+        "mugwort": "Beifuß",
+        "olive": "Olive",
+        "ragweed": "Ambrosia"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "alder": {
+        "name": "Erle"
+      },
+      "consensus_alder": {
+        "name": "Erle Konsens"
+      },
+      "personal_score_alder": {
+        "name": "Erle Personal-Score"
+      },
+      "recent_percentile_alder": {
+        "name": "Erle aktuelles Perzentil"
+      },
+      "alternaria": {
+        "name": "Alternaria"
+      },
+      "consensus_alternaria": {
+        "name": "Alternaria Konsens"
+      },
+      "personal_score_alternaria": {
+        "name": "Alternaria Personal-Score"
+      },
+      "recent_percentile_alternaria": {
+        "name": "Alternaria aktuelles Perzentil"
+      },
+      "ash": {
+        "name": "Esche"
+      },
+      "consensus_ash": {
+        "name": "Esche Konsens"
+      },
+      "personal_score_ash": {
+        "name": "Esche Personal-Score"
+      },
+      "recent_percentile_ash": {
+        "name": "Esche aktuelles Perzentil"
+      },
+      "asteraceae": {
+        "name": "Korbblütler"
+      },
+      "consensus_asteraceae": {
+        "name": "Korbblütler Konsens"
+      },
+      "personal_score_asteraceae": {
+        "name": "Korbblütler Personal-Score"
+      },
+      "recent_percentile_asteraceae": {
+        "name": "Korbblütler aktuelles Perzentil"
+      },
+      "beech": {
+        "name": "Buche"
+      },
+      "consensus_beech": {
+        "name": "Buche Konsens"
+      },
+      "personal_score_beech": {
+        "name": "Buche Personal-Score"
+      },
+      "recent_percentile_beech": {
+        "name": "Buche aktuelles Perzentil"
+      },
+      "birch": {
+        "name": "Birke"
+      },
+      "consensus_birch": {
+        "name": "Birke Konsens"
+      },
+      "personal_score_birch": {
+        "name": "Birke Personal-Score"
+      },
+      "recent_percentile_birch": {
+        "name": "Birke aktuelles Perzentil"
+      },
+      "carpinus": {
+        "name": "Hainbuche"
+      },
+      "consensus_carpinus": {
+        "name": "Hainbuche Konsens"
+      },
+      "personal_score_carpinus": {
+        "name": "Hainbuche Personal-Score"
+      },
+      "recent_percentile_carpinus": {
+        "name": "Hainbuche aktuelles Perzentil"
+      },
+      "chenopodium": {
+        "name": "Gänsefuß"
+      },
+      "consensus_chenopodium": {
+        "name": "Gänsefuß Konsens"
+      },
+      "personal_score_chenopodium": {
+        "name": "Gänsefuß Personal-Score"
+      },
+      "recent_percentile_chenopodium": {
+        "name": "Gänsefuß aktuelles Perzentil"
+      },
+      "cypress_family": {
+        "name": "Zypressengewächse"
+      },
+      "consensus_cypress_family": {
+        "name": "Zypressengewächse Konsens"
+      },
+      "personal_score_cypress_family": {
+        "name": "Zypressengewächse Personal-Score"
+      },
+      "recent_percentile_cypress_family": {
+        "name": "Zypressengewächse aktuelles Perzentil"
+      },
+      "elm": {
+        "name": "Ulme"
+      },
+      "consensus_elm": {
+        "name": "Ulme Konsens"
+      },
+      "personal_score_elm": {
+        "name": "Ulme Personal-Score"
+      },
+      "recent_percentile_elm": {
+        "name": "Ulme aktuelles Perzentil"
+      },
+      "grass": {
+        "name": "Gräser"
+      },
+      "consensus_grass": {
+        "name": "Gräser Konsens"
+      },
+      "personal_score_grass": {
+        "name": "Gräser Personal-Score"
+      },
+      "recent_percentile_grass": {
+        "name": "Gräser aktuelles Perzentil"
+      },
+      "hazel": {
+        "name": "Hasel"
+      },
+      "consensus_hazel": {
+        "name": "Hasel Konsens"
+      },
+      "personal_score_hazel": {
+        "name": "Hasel Personal-Score"
+      },
+      "recent_percentile_hazel": {
+        "name": "Hasel aktuelles Perzentil"
+      },
+      "holm_oak": {
+        "name": "Steineiche"
+      },
+      "consensus_holm_oak": {
+        "name": "Steineiche Konsens"
+      },
+      "personal_score_holm_oak": {
+        "name": "Steineiche Personal-Score"
+      },
+      "recent_percentile_holm_oak": {
+        "name": "Steineiche aktuelles Perzentil"
+      },
+      "juglans": {
+        "name": "Walnuss"
+      },
+      "consensus_juglans": {
+        "name": "Walnuss Konsens"
+      },
+      "personal_score_juglans": {
+        "name": "Walnuss Personal-Score"
+      },
+      "recent_percentile_juglans": {
+        "name": "Walnuss aktuelles Perzentil"
+      },
+      "mugwort": {
+        "name": "Beifuß"
+      },
+      "consensus_mugwort": {
+        "name": "Beifuß Konsens"
+      },
+      "personal_score_mugwort": {
+        "name": "Beifuß Personal-Score"
+      },
+      "recent_percentile_mugwort": {
+        "name": "Beifuß aktuelles Perzentil"
+      },
+      "nettle_family": {
+        "name": "Brennnesselgewächse"
+      },
+      "consensus_nettle_family": {
+        "name": "Brennnesselgewächse Konsens"
+      },
+      "personal_score_nettle_family": {
+        "name": "Brennnesselgewächse Personal-Score"
+      },
+      "recent_percentile_nettle_family": {
+        "name": "Brennnesselgewächse aktuelles Perzentil"
+      },
+      "oak": {
+        "name": "Eiche"
+      },
+      "consensus_oak": {
+        "name": "Eiche Konsens"
+      },
+      "personal_score_oak": {
+        "name": "Eiche Personal-Score"
+      },
+      "recent_percentile_oak": {
+        "name": "Eiche aktuelles Perzentil"
+      },
+      "olive": {
+        "name": "Olive"
+      },
+      "consensus_olive": {
+        "name": "Olive Konsens"
+      },
+      "personal_score_olive": {
+        "name": "Olive Personal-Score"
+      },
+      "recent_percentile_olive": {
+        "name": "Olive aktuelles Perzentil"
+      },
+      "plane_tree": {
+        "name": "Platane"
+      },
+      "consensus_plane_tree": {
+        "name": "Platane Konsens"
+      },
+      "personal_score_plane_tree": {
+        "name": "Platane Personal-Score"
+      },
+      "recent_percentile_plane_tree": {
+        "name": "Platane aktuelles Perzentil"
+      },
+      "plantago": {
+        "name": "Wegerich"
+      },
+      "consensus_plantago": {
+        "name": "Wegerich Konsens"
+      },
+      "personal_score_plantago": {
+        "name": "Wegerich Personal-Score"
+      },
+      "recent_percentile_plantago": {
+        "name": "Wegerich aktuelles Perzentil"
+      },
+      "ragweed": {
+        "name": "Ambrosia"
+      },
+      "consensus_ragweed": {
+        "name": "Ambrosia Konsens"
+      },
+      "personal_score_ragweed": {
+        "name": "Ambrosia Personal-Score"
+      },
+      "recent_percentile_ragweed": {
+        "name": "Ambrosia aktuelles Perzentil"
+      },
+      "rumex": {
+        "name": "Ampfer"
+      },
+      "consensus_rumex": {
+        "name": "Ampfer Konsens"
+      },
+      "personal_score_rumex": {
+        "name": "Ampfer Personal-Score"
+      },
+      "recent_percentile_rumex": {
+        "name": "Ampfer aktuelles Perzentil"
+      },
+      "rye": {
+        "name": "Roggen"
+      },
+      "consensus_rye": {
+        "name": "Roggen Konsens"
+      },
+      "personal_score_rye": {
+        "name": "Roggen Personal-Score"
+      },
+      "recent_percentile_rye": {
+        "name": "Roggen aktuelles Perzentil"
+      },
+      "urtica": {
+        "name": "Brennnessel"
+      },
+      "consensus_urtica": {
+        "name": "Brennnessel Konsens"
+      },
+      "personal_score_urtica": {
+        "name": "Brennnessel Personal-Score"
+      },
+      "recent_percentile_urtica": {
+        "name": "Brennnessel aktuelles Perzentil"
+      }
+    },
+    "binary_sensor": {
+      "divergence_alder": {
+        "name": "Erle Divergenz"
+      },
+      "divergence_alternaria": {
+        "name": "Alternaria Divergenz"
+      },
+      "divergence_ash": {
+        "name": "Esche Divergenz"
+      },
+      "divergence_asteraceae": {
+        "name": "Korbblütler Divergenz"
+      },
+      "divergence_beech": {
+        "name": "Buche Divergenz"
+      },
+      "divergence_birch": {
+        "name": "Birke Divergenz"
+      },
+      "divergence_carpinus": {
+        "name": "Hainbuche Divergenz"
+      },
+      "divergence_chenopodium": {
+        "name": "Gänsefuß Divergenz"
+      },
+      "divergence_cypress_family": {
+        "name": "Zypressengewächse Divergenz"
+      },
+      "divergence_elm": {
+        "name": "Ulme Divergenz"
+      },
+      "divergence_grass": {
+        "name": "Gräser Divergenz"
+      },
+      "divergence_hazel": {
+        "name": "Hasel Divergenz"
+      },
+      "divergence_holm_oak": {
+        "name": "Steineiche Divergenz"
+      },
+      "divergence_juglans": {
+        "name": "Walnuss Divergenz"
+      },
+      "divergence_mugwort": {
+        "name": "Beifuß Divergenz"
+      },
+      "divergence_nettle_family": {
+        "name": "Brennnesselgewächse Divergenz"
+      },
+      "divergence_oak": {
+        "name": "Eiche Divergenz"
+      },
+      "divergence_olive": {
+        "name": "Olive Divergenz"
+      },
+      "divergence_plane_tree": {
+        "name": "Platane Divergenz"
+      },
+      "divergence_plantago": {
+        "name": "Wegerich Divergenz"
+      },
+      "divergence_ragweed": {
+        "name": "Ambrosia Divergenz"
+      },
+      "divergence_rumex": {
+        "name": "Ampfer Divergenz"
+      },
+      "divergence_rye": {
+        "name": "Roggen Divergenz"
+      },
+      "divergence_urtica": {
+        "name": "Brennnessel Divergenz"
+      }
+    }
+  }
+}

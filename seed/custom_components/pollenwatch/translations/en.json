@@ -1,0 +1,109 @@
+{
+  "title": "PollenWatch",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add a PollenWatch location",
+        "description": "Pollen data comes from the Copernicus Atmosphere Monitoring Service (CAMS) via Open-Meteo and covers Europe. The location is fixed once set — to move it later, remove and re-add the integration.",
+        "data": {
+          "location": "Location",
+          "allergens": "Allergens"
+        },
+        "data_description": {
+          "location": "Pick the point to monitor. Open-Meteo snaps it to the nearest ~10 km grid cell.",
+          "allergens": "Which pollen species to create sensors for."
+        }
+      }
+    },
+    "error": {
+      "out_of_coverage": "This location is outside CAMS European coverage. Choose a location within Europe.",
+      "cannot_connect": "Could not reach Open-Meteo. Check your connection and try again.",
+      "no_allergens": "Select at least one allergen."
+    },
+    "abort": {
+      "already_configured": "This location is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "PollenWatch options",
+        "description": "The location is fixed; remove and re-add the integration to change it.",
+        "data": {
+          "allergens": "Allergens",
+          "update_interval": "Update interval (minutes)",
+          "enable_polleninformation": "Enable polleninformation.at (second source)",
+          "country": "Country (polleninformation)",
+          "api_key": "polleninformation API key",
+          "sensitivity_alder": "Alder sensitivity (×)",
+          "sensitivity_birch": "Birch sensitivity (×)",
+          "sensitivity_grass": "Grass sensitivity (×)",
+          "sensitivity_mugwort": "Mugwort sensitivity (×)",
+          "sensitivity_olive": "Olive sensitivity (×)",
+          "sensitivity_ragweed": "Ragweed sensitivity (×)",
+          "enable_dwd": "Enable DWD Pollenflug (Germany, third source)",
+          "region": "DWD region",
+          "enable_meteoswiss": "Enable MeteoSwiss (Switzerland)",
+          "enable_epin": "Enable ePIN (Bavaria)",
+          "enable_google": "Enable Google Pollen API (global)",
+          "google_api_key": "Google Pollen API key"
+        },
+        "data_description": {
+          "update_interval": "How often to poll Open-Meteo. Minimum 60 minutes to be a good citizen on a free public API.",
+          "enable_polleninformation": "Adds a second source. Requires a free API key from polleninformation.at.",
+          "country": "The country whose pollen network covers your location.",
+          "api_key": "Stored encrypted in Home Assistant; never written to disk in plain text.",
+          "enable_dwd": "Adds the Deutscher Wetterdienst forecast. Germany only; no API key needed.",
+          "region": "Your DWD forecast region within Germany.",
+          "enable_meteoswiss": "Adds the MeteoSwiss automatic network. Switzerland only; no API key. The nearest measuring station is picked automatically — currently: {ms_station}.",
+          "enable_epin": "Adds the ePIN automatic network. Bavaria only; no API key. The nearest measuring station is picked automatically — currently: {epin_station}.",
+          "enable_google": "Adds the Google Pollen API: global coverage, 5-day forecast, all six allergens (incl. olive — the only source with it). Requires a Google Cloud project with the Pollen API enabled AND a billing account attached. A free tier exists (~5,000 requests/month) but Google requires a payment method on file, so this is more involved than the other sources' free keys.",
+          "google_api_key": "Stored encrypted in Home Assistant; never written to disk in plain text. Consensus-only: Google's licence forbids storing its forecasts, so it is not used for the recent-percentile baseline."
+        }
+      }
+    },
+    "error": {
+      "no_allergens": "Select at least one allergen.",
+      "country_required": "Select a country to enable polleninformation.",
+      "api_key_required": "Enter the API key for the source you enabled.",
+      "invalid_api_key": "The source rejected the API key. Check it and try again.",
+      "out_of_coverage": "The selected source has no pollen data for this location.",
+      "cannot_connect": "Could not reach the selected pollen source. Check your connection and try again.",
+      "region_required": "Select a DWD region to enable DWD."
+    }
+  },
+  "selector": {
+    "allergen": {
+      "options": {
+        "alder": "Alder",
+        "birch": "Birch",
+        "grass": "Grass",
+        "mugwort": "Mugwort",
+        "olive": "Olive",
+        "ragweed": "Ragweed"
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "alder": {
+        "name": "Alder"
+      },
+      "birch": {
+        "name": "Birch"
+      },
+      "grass": {
+        "name": "Grass"
+      },
+      "mugwort": {
+        "name": "Mugwort"
+      },
+      "olive": {
+        "name": "Olive"
+      },
+      "ragweed": {
+        "name": "Ragweed"
+      }
+    }
+  }
+}
