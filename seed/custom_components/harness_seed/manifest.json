@@ -3,7 +3,7 @@
   "name": "Harness Seed",
   "documentation": "https://github.com/TheDave94/ha-demo-harness",
   "codeowners": [],
-  "dependencies": ["recorder"],
+  "dependencies": ["http", "recorder"],
   "after_dependencies": ["pollenwatch", "person", "template"],
   "iot_class": "calculated",
   "version": "0.1.0"

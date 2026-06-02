@@ -6,7 +6,7 @@
     "items": [
       {
         "id": "0224d0701dd64e3faa8f8ee6f041edac",
-        "url": "/local/community/oriel-dashboard/oriel.js",
+        "url": "/hacsfiles/oriel-dashboard/oriel.js",
         "type": "module"
       },
       {

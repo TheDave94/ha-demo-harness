@@ -99,6 +99,32 @@ SPARKLINE_SENTINEL = "sensor.living_room_temperature"
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    # Serve oriel's files at the /hacsfiles/ route too, so its async chunks load.
+    # oriel's webpack hardcodes publicPath '/hacsfiles/oriel-dashboard/', so
+    # oriel.js fetches its chunks (oriel-core/views/editor/lit/422) from there.
+    # In a real install HACS provides that route; the harness has no HACS, so
+    # without this the chunks 404 and no cards mount. We map the SAME baked dir
+    # to both /local/community/oriel-dashboard/ (HA's default www route, kept for
+    # the other cards) and /hacsfiles/oriel-dashboard/ (what oriel needs), so
+    # oriel runs tested-as-shipped with its publicPath unchanged.
+    from homeassistant.components.http import StaticPathConfig
+
+    await hass.http.async_register_static_paths(
+        [
+            StaticPathConfig(
+                "/hacsfiles/oriel-dashboard",
+                hass.config.path("www/community/oriel-dashboard"),
+                # No long-lived caching: a renderer test docker-cp's a fresh build
+                # in, and the stable-named oriel.js must not be served stale.
+                False,
+            )
+        ]
+    )
+    _LOGGER.info(
+        "harness_seed: serving oriel at /hacsfiles/oriel-dashboard "
+        "(chunk route for publicPath)"
+    )
+
     async def _on_started(_event: Event) -> None:
         # Stop pollenwatch's coordinators FIRST so nothing re-derives the pollen
         # states after we stage them (replaces the old out-race-it heuristic with
