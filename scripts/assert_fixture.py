@@ -174,6 +174,28 @@ async def main() -> int:
         for k, v in EXPECTED_TOGGLES.items():
             check(f"toggle {k}", strat.get(k) == v, f"got {strat.get(k)!r}")
 
+        # 3b. An area must pin a zone-presence card to favorites — THIS is what
+        # makes oriel render an oriel-zone-presence-card on the overview (the
+        # surface container-queries.spec exercises). It goes through the favorites
+        # grid (always-eager overview section); the top-level `presence_zones`
+        # section is built but NOT reachable in oriel's overview section order, so
+        # it does not render. Guard the working mechanism so dropping it fails the
+        # harness's OWN self-test, not downstream in a consumer's CI.
+        areas_opts = strat.get("areas_options") or {}
+        pinned = [
+            a
+            for a, o in areas_opts.items()
+            if isinstance(o, dict)
+            and o.get("pin_zone_presence_to_favorites") is True
+            and isinstance(o.get("presence_entities"), list)
+            and len(o.get("presence_entities")) > 0
+        ]
+        check(
+            "an area pins a zone-presence card (pin_zone_presence_to_favorites + presence_entities)",
+            len(pinned) > 0,
+            f"got areas_options={list(areas_opts)!r}",
+        )
+
         # 4. pollen consensus spread (deterministic post-S1.5)
         states = await _rest(session, "/api/states")
         by_id = {s["entity_id"]: s["state"] for s in states}

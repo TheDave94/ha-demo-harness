@@ -260,3 +260,37 @@ the file was **actually run**: `docker compose config` validates (rc 0, port
 `8127:8123` correct), and `docker compose up -d` boots the populated demo on `:8127`
 — harness_seed runs (neutralize + stage + 970 history rows), 164 entities, pollen
 at the staged spread. The S1 "un-exercised" flag is cleared.
+
+---
+
+# Session S3-prep — presence fixture gap closed (2026-06-02)
+
+oriel's `container-queries.spec` needs an `oriel-zone-presence-card` on the
+overview; the demo rendered none, so PR #113's `demo-browser` failed on that one
+spec. **Closed it** — config-only, **zero new entities, baseline still 164.**
+
+**The mechanism (not the one first assumed).** The S3-prep investigation expected
+a top-level `presence_zones` list to render the card. In practice it does **not**:
+oriel builds the `presence` section into its `sectionMap` but **never places it in
+the overview section order** — `DEFAULT_SECTIONS_ORDER` is just
+`[overview, custom_cards, areas, weather, energy, plants]`, and
+`normalizeSectionsOrder` only auto-appends those defaults; `presence`/`persons`/
+`agenda`/`todos`/`vacuums`/`maintenance` are built but unreachable on the
+overview, and even an explicit `sections_order: [...,presence]` entry is dropped
+(it's not in `BUILTIN_SECTION_KEYS`). **This looks like an oriel quirk/bug worth a
+separate upstream issue** — flagged, not fixed here (harness-only session).
+
+**What works:** the per-area pin path (also identified in the investigation),
+which routes through the **favorites grid** inside the always-eager `overview`
+section, bypassing the broken ordering. Added to the `oriel_demo` strategy config:
+```jsonc
+"areas_options": { "living_room": {
+  "pin_zone_presence_to_favorites": true,
+  "presence_entities": ["binary_sensor.living_room_motion",
+                        "binary_sensor.hallway_motion"] } }
+```
+Reuses 2 existing motion sensors. **Verified (baked AND fresh-injected oriel):**
+1 `oriel-zone-presence-card` mounts on `/oriel-demo/0`, `--oriel-icon-wrap`
+resolves to `36px` (exactly what container-queries.spec asserts). `assert_fixture.py`
+gains a guard asserting an area pins the card (so dropping it fails the harness's
+own self-test). Published as **v0.1.2**.

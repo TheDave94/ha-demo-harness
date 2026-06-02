@@ -20,6 +20,15 @@
           "climate.heatpump",
           "cover.living_room_window"
         ],
+        "areas_options": {
+          "living_room": {
+            "pin_zone_presence_to_favorites": true,
+            "presence_entities": [
+              "binary_sensor.living_room_motion",
+              "binary_sensor.hallway_motion"
+            ]
+          }
+        },
         "custom_cards_heading": "Trends",
         "custom_cards": [
           {
