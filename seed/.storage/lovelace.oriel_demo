@@ -41,6 +41,14 @@
               "show_extrema": true,
               "color": "#ff9800"
             }
+          },
+          {
+            "target_section": "custom_cards",
+            "title": "F3 alias check",
+            "card": {
+              "type": "markdown",
+              "content": "F3 custom-card alias OK"
+            }
           }
         ]
       }

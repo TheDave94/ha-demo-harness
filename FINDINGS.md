@@ -307,3 +307,38 @@ Reuses 2 existing motion sensors. **Verified (baked AND fresh-injected oriel):**
 resolves to `36px` (exactly what container-queries.spec asserts). `assert_fixture.py`
 gains a guard asserting an area pins the card (so dropping it fails the harness's
 own self-test). Published as **v0.1.2**.
+
+# Session S-F3-prep — `card:`-alias custom card staged ahead of oriel's F3 fix (2026-06-03)
+
+F3 (see the Demo-exercise findings table above): oriel renders a custom-card
+entry **only** when it carries `parsed_config` (the editor's serialized output).
+A YAML-direct author writing the natural `card:`/`config:` gets a **silent
+non-render** — at render time oriel reads `parsed_config` and nothing else (no
+runtime YAML parse; `yaml.load` lives only in oriel's editor chunk). oriel's
+upcoming fix will accept `card:`/`config:` as render-time aliases (normalize
+`card`→`parsed_config`).
+
+**Staged the e2e surface here, prep-then-consumer (same pattern as the F4 /
+presence prep).** Added a **second** `custom_cards` entry to the `oriel_demo`
+strategy config (`seed/.storage/lovelace.oriel_demo`) written in the **`card:`
+alias form** (NOT `parsed_config`):
+```jsonc
+{ "target_section": "custom_cards",
+  "title": "F3 alias check",
+  "card": { "type": "markdown", "content": "F3 custom-card alias OK" } }
+```
+A built-in HA `markdown` card — **no custom element, zero new entities, baseline
+unchanged at 164.** The distinctive content string (`F3 custom-card alias OK`) is
+the marker the future oriel F3 e2e will assert on.
+
+**Pre-fix behavior (expected & correct): this entry renders NOTHING today.** With
+the currently-published oriel (no F3 fix), `card:` is ignored and the card is
+silently dropped. The fixture is deliberately staged **ahead** of the fix — it
+only renders once BOTH oriel's F3 alias fix AND this fixture are in place. That
+is the point of prep-then-consumer.
+
+**Self-test is unaffected.** `assert_fixture.py` checks entity counts (164),
+areas, strategy toggles, pollen spread, and sparkline history — it does **not**
+inspect `custom_cards` structure or require any custom card to render. The new
+entry is config (not an entity) and need only be *present and valid*, not
+rendering-yet. Verified: JSON valid, baseline still 164. Published as **v0.1.3**.
