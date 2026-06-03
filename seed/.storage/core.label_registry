@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "minor_version": 3,
+  "key": "core.label_registry",
+  "data": {
+    "labels": [
+      {
+        "color": "red",
+        "created_at": "2026-06-02T11:57:54.000000+00:00",
+        "description": "Oriel: exclude from dashboard (F6/Rung-0 fixture).",
+        "icon": "mdi:eye-off",
+        "label_id": "no_dboard",
+        "modified_at": "2026-06-02T11:57:54.000000+00:00",
+        "name": "no_dboard"
+      }
+    ]
+  }
+}

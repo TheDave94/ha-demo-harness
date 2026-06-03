@@ -342,3 +342,43 @@ areas, strategy toggles, pollen spread, and sparkline history — it does **not*
 inspect `custom_cards` structure or require any custom card to render. The new
 entry is config (not an entity) and need only be *present and valid*, not
 rendering-yet. Verified: JSON valid, baseline still 164. Published as **v0.1.3**.
+
+# Session S-F6-prep — `no_dboard`-excluded actionable entity staged ahead of oriel's F6/Rung-0 fix (2026-06-03)
+
+F6/Rung-0 (the bubble-drawer enhancement, see the oriel-side investigation):
+oriel's `collectBubbleCandidates` iterates **raw `hass.states`** and filters
+**only by domain** (`light`/`climate`/`cover`/`fan`/`media_player`). It does
+**not** route through `Registry.isEntityExcluded()`, so an entity the user has
+excluded (the `no_dboard` label, `hidden_by`, per-area hidden, config/diagnostic)
+**still gets a bubble drawer** — and the docstring even falsely claims it skips
+registry-hidden entities. oriel's Rung-0 fix will make bubble emission honor the
+exclusion pipeline.
+
+**Staged the e2e surface here (prep-then-consumer, same as F3 / F4 / presence).**
+Marked ONE existing actionable entity — **`light.kitchen_lights`** (demo platform,
+Kitchen area, a `light`, so it currently WOULD get a drawer at hash
+`#bubble-light-kitchen-lights`) — with oriel's documented exclusion signal, the
+**`no_dboard` label**:
+- New file `seed/.storage/core.label_registry` defining label_id `no_dboard`.
+- `light.kitchen_lights`'s entity-registry `labels` set to `["no_dboard"]` (a
+  surgical one-line edit preserving HA's compact storage format — the entity is
+  **not deleted**, just labelled, so baseline stays 164).
+
+Chose `no_dboard` over `hidden_by` because it's oriel's canonical, user-facing
+"hide from dashboard" mechanism and the first check in `isEntityExcluded()` — the
+most representative Rung-0 test. (`hidden_by` was the documented fallback.)
+
+**Pre-fix behaviour (expected & correct): `light.kitchen_lights` STILL gets a
+drawer today.** With the currently-published oriel, the domain-only filter ignores
+the label, so the excluded entity is wrongly emitted. **Post-fix (Rung-0): it must
+get NO drawer.** The fixture stages the excluded entity; the assertion **flips
+with the oriel fix** — meaningful only once oriel ships Rung-0.
+
+**Self-test unaffected.** `assert_fixture.py` checks entity counts (164),
+platforms, areas, toggles, pollen, sparkline — none inspect labels/`hidden_by`.
+Labelling an entity changes none of them. **Verified on a booted container:** the
+`no_dboard` label **round-trips through HA** (`config/label_registry/list` →
+`no_dboard`; `config/entity_registry/list` → `light.kitchen_lights.labels =
+["no_dboard"]`, and it's the only labelled entity); `light.kitchen_lights` state
+is still live (`on`, so it currently still emits a drawer); all fixture invariants
+hold at baseline 164. Published as **v0.1.4**.
