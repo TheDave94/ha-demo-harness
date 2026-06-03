@@ -170,14 +170,27 @@ DOM-walking the live dashboard, not by reading code.
 | **F1** | minor (i18n) | `src/translations/en.json` | `sections.routines` key is **missing** — the Routines section header renders the literal key string instead of "Routines". |
 | **F2** | medium | `src/utils/localize.ts` (e.g. callsite `OverviewViewStrategy.ts:391`) | `localize()` returns the **key-string on a miss** (truthy), so `localize(...) || 'fallback'` never fires — defensive fallbacks are silently bypassed for *any* missing key. Likely affects every such callsite. F1 only became *visible* because F2 swallows the fallback. |
 | **F3** | medium | `src/types/strategy.ts` (CustomCard schema) | The custom-card field is `parsed_config`, not the natural `card`/`config`. YAML-direct users hand-writing the strategy use `card:` and the card **silently doesn't render** — editor-internal terminology leaking into the user-facing contract. |
-| **F4** | medium, **USER-FACING (flagship)** | `src/cards/SparklineCard.ts:282–287` | The ApexCharts render path returns a bare `<apexcharts-card>` with **no `<ha-card>` wrapper**, so `getBoundingClientRect()` is **0×0** — the chart mounts but is **invisible** for any real user enabling `use_apexcharts`. The non-apex path (~line 320) *does* wrap in `ha-card`. This is the flagship find: the demo + an eyeball caught what no unit test could. |
+| **F4** | medium, **USER-FACING (flagship)** | `src/cards/SparklineCard.ts` (apex render branch) | The ApexCharts render path was **invisible** (`getBoundingClientRect()` **0×0**) for any user enabling `use_apexcharts`. **Root cause (corrected — see note below):** oriel bound `.config=${apexConfig}` as a lit *property*, but `apexcharts-card` has **no `set config()` accessor** — it configures only via its **`setConfig()` method**. The bind was a silent no-op, so the delegate was never configured and rendered an empty 0×0 shadow. The fix (oriel PR, [#114]) configures it imperatively via `setConfig()`. This is the flagship find: the demo + an eyeball caught what no unit test could. |
 | **F5** | **NOT a bug** (test-method lesson) | — | An early DOM walk reported "0 bubble-card elements emitted"; re-testing with a clean context found **all 35**. The walker had bailed at a shadow-DOM boundary — a test-method artifact, not an oriel defect. **Lesson: verify the walker before concluding non-emission.** Recorded so the false alarm isn't rediscovered as a "bug." |
 | **F6** | informational / enhancement | bubble-drawer emission (`use_bubble_drawers: true`) | oriel emits pop-ups for **all** actionable entities (35 in the demo) with no knob to scope (e.g. favorites-only) — heavy DOM. Worth a scoping option or at least a doc note. Not a defect. |
 
-**Harness coverage:** F4 → planned assertion #1 ("sparkline renders inside
-`ha-card` with nonzero bounding box"); F2 → assertion #2 ("no raw localization
-keys in rendered DOM"). F5's lesson is baked into how the bubble-emission
-assertion's DOM walker must be written.
+**Harness coverage:** F4 → assertion #1 ("sparkline renders inside `ha-card`
+with nonzero bounding box" — still valid: `apexcharts-card` renders its *own*
+`ha-card` once configured); F2 → assertion #2 ("no raw localization keys in
+rendered DOM"). Both now live as e2e specs in the oriel PR ([#114]:
+`sparkline-apex.spec.ts`, `no-raw-localization-keys.spec.ts`), plus a required
+unit gate `SparklineCard.test.ts`. F5's lesson is baked into how the
+bubble-emission assertion's DOM walker must be written.
+
+> **F4 root-cause correction (2026-06-03).** The original F4 entry above
+> attributed the 0×0 chart to a **missing `<ha-card>` wrapper**. That was
+> **wrong**, established empirically while scoping the fix: wrapping the bare
+> `<apexcharts-card>` in `ha-card` does *not* fix it — the delegate stays 0×0
+> because it is never **configured**. `apexcharts-card` reads config only via
+> `setConfig()` (no `set config()` accessor), so oriel's `.config=` property
+> bind was a silent no-op. The real fix is imperative `setConfig()`; no wrapper
+> is needed (apexcharts-card mounts its own `ha-card`). Lesson: confirm the
+> failure mode by building the candidate fix before recording a root cause.
 
 ---
 
